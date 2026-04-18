@@ -58,7 +58,7 @@ The prototype was updated from a phone-shell mockup to a full website layout, th
 
 **Tools used:** Claude (Anthropic) via Kiro for HTML/CSS/JS prototype generation and iterative UI spec-driven development
 
-**Process:** Claude generated the initial code structure, SVG floor map rendering, and JavaScript routing logic based on paper prototype sketches and Design B aesthetic. Subsequent sessions used Claude to remove the phone shell, apply Figma mockup styling, and implement the dual-field search with live suggestions.
+**Process:** Claude generated the initial code structure, SVG floor map rendering, and JavaScript routing logic based on paper prototype sketches and Design B, apply Figma mockup styling, and implement the dual-field search with live suggestions.
 
 **Human design decisions that deviated from or built upon AI suggestions:**
 - Preserved the dedicated Route Type screen with explicit Fastest vs Accessible choice, matching the paper prototype — specifically requested to address accessibility feedback from Participants 2 & 3
