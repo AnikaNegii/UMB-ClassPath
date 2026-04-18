@@ -5,7 +5,7 @@
 
 ## Live Demo
 
-> Deploy this folder to GitHub Pages. All pages link to each other — no server or build step required.
+https://anikanegii.github.io/UMB-ClassPath/index.html
 
 ## Figma Design Reference
  
@@ -15,12 +15,6 @@ The visual layout and interaction design for this prototype is based on the foll
  
 The Figma file served as the primary design reference for screen layouts, color system, typography, component styling, and interaction flows. The HTML prototype implements the same screens as functional, navigable pages with working features such as live room search, route saving via localStorage, interactive floor maps, and step-by-step navigation.
  
----
-
-## View on GitHub Pages
-
-https://anikanegii.github.io/UMB-ClassPath/index.html
-
 ---
 
 ## Prototype Screens & User Flows
