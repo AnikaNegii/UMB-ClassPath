@@ -17,16 +17,9 @@ The Figma file served as the primary design reference for screen layouts, color 
  
 ---
 
-## How to Deploy on GitHub Pages
+## View on GitHub Pages
 
-1. Create a new GitHub repository (e.g. `umb-classpath`)
-2. Upload all files in this folder to the repository root
-3. Go to **Settings → Pages → Source → main branch / root**
-4. Your site will be live at `https://<your-username>.github.io/umb-classpath/`
-
-## How to Run Locally
-
-Simply open `index.html` in any modern browser. No server needed.
+https://anikanegii.github.io/UMB-ClassPath/index.html
 
 ---
 
