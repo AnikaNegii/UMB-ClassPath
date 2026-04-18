@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClassPath — Room Details</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.room-page-header {
+  background: var(--white);
+  padding: 20px 24px 20px;
+  border-bottom: 1.5px solid var(--border);
+}
+.room-page-header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+.room-page-header .room-subtitle { font-size: 14px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+
+.detail-card {
+  background: var(--white);
+  border-radius: 16px;
+  border: 1.5px solid var(--border);
+  padding: 4px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.btn-stack { display: flex; flex-direction: column; gap: 12px; }
+
+.save-chip {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 13px; font-weight: 700; color: var(--text-muted);
+  margin-top: 12px; cursor: pointer; transition: color 0.15s;
+}
+.save-chip:hover { color: var(--blue); }
+.save-chip svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; }
+
+#saveMsg {
+  display: none; text-align: center; font-size: 13px; font-weight: 700;
+  color: #166534; background: #dcfce7; padding: 10px; border-radius: 10px; margin-top: 10px;
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <nav class="topbar">
+    <a href="index.html" class="topbar-brand">
+      <div class="topbar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </div>
+      <div>
+        <div class="topbar-name">ClassPath</div>
+        <div class="topbar-sub">Find your path to success</div>
+      </div>
+    </a>
+    <button class="topbar-menu" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-linecap="round"/></svg>
+    </button>
+  </nav>
+
+  <div class="screen">
+    <div class="room-page-header">
+      <a id="backLink" href="search.html" class="back-btn" style="margin-bottom:14px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        Back
+      </a>
+      <h1 id="roomCode">—</h1>
+      <div class="room-subtitle" id="roomSubtitle">—</div>
+    </div>
+
+    <div class="content">
+      <div class="detail-card">
+        <div class="detail-row"><span class="label">Building</span><span class="value" id="dBuilding">—</span></div>
+        <div class="detail-row"><span class="label">Floor</span><span class="value" id="dFloor">—</span></div>
+        <div class="detail-row"><span class="label">Room Type</span><span class="value" id="dType">—</span></div>
+        <div class="detail-row"><span class="label">Capacity</span><span class="value" id="dCapacity">—</span></div>
+      </div>
+
+      <div class="btn-stack">
+        <a id="directionsBtn" href="#" class="btn btn-blue">Get Directions</a>
+        <a id="mapBtn" href="#" class="btn btn-outline">View on Floor Map</a>
+      </div>
+
+      <div class="save-chip" onclick="saveRoute()">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Save this route for later
+      </div>
+      <div id="saveMsg">✓ Route saved to My Routes!</div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 21V12h6v9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Home</a>
+    <a href="search.html" class="nav-item active"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-linecap="round"/></svg>Search</a>
+    <a href="map.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none"><path d="M9 4L3 7v13l6-3 6 3 6-3V4l-6 3-6-3z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Map</a>
+    <a href="routes.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Routes</a>
+  </div>
+</div>
+<script>
+const p = new URLSearchParams(location.search);
+const room = p.get('room') || 'W-2-134';
+const type = p.get('type') || 'lab';
+const building = p.get('building') || 'Wheatley';
+const floor = p.get('floor') || '2';
+const capacity = p.get('capacity') || '30';
+const typeLabels = { lab:'Computer Lab', room:'Classroom', office:'Faculty Office', lecture:'Lecture Hall' };
+const floorLabels = { '1':'1st Floor','2':'2nd Floor','3':'3rd Floor','4':'4th Floor' };
+document.getElementById('roomCode').textContent = room;
+document.getElementById('roomSubtitle').textContent = `${building}, Floor ${floor}, ${typeLabels[type]||'Room'}`;
+document.getElementById('dBuilding').textContent = building;
+document.getElementById('dFloor').textContent = floorLabels[floor] || `Floor ${floor}`;
+document.getElementById('dType').textContent = typeLabels[type] || 'Room';
+document.getElementById('dCapacity').textContent = `${capacity} Students`;
+const mapParams = new URLSearchParams({ room, building, floor });
+document.getElementById('directionsBtn').href = `route-options.html?${mapParams}`;
+document.getElementById('mapBtn').href = `map.html?${mapParams}`;
+document.getElementById('backLink').href = `select-choices.html?q=${room.split('-')[0].toLowerCase()}`;
+function saveRoute() {
+  const saved = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
+  if (!saved.find(s => s.room === room)) {
+    saved.push({ room, building, floor, type, capacity });
+    localStorage.setItem('savedRoutes', JSON.stringify(saved));
+  }
+  const msg = document.getElementById('saveMsg');
+  msg.style.display = 'block';
+  setTimeout(() => msg.style.display = 'none', 2500);
+}
+</script>
+</body>
+</html>

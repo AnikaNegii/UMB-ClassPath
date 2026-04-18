@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClassPath — Floor Map</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.map-page-header {
+  background: var(--white);
+  padding: 20px 24px 16px;
+  border-bottom: 1.5px solid var(--border);
+}
+.map-page-header h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+.map-page-header p  { font-size: 14px; color: var(--text-muted); margin-top: 3px; }
+.map-floor-tabs { display: flex; border-bottom: 1.5px solid var(--border); background: var(--bg); }
+.floor-tab {
+  flex: 1; padding: 10px 4px; text-align: center;
+  font-size: 13px; font-weight: 700; color: var(--text-muted);
+  cursor: pointer; border-bottom: 2.5px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.floor-tab.active { color: var(--blue); border-bottom-color: var(--blue); background: var(--white); }
+.map-svg-wrap { padding: 16px; }
+.map-legend {
+  display: flex; gap: 16px; padding: 10px 16px;
+  border-top: 1px solid var(--border); background: var(--bg); flex-wrap: wrap;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.legend-dot  { width: 10px; height: 10px; border-radius: 50%; }
+.dest-card {
+  background: var(--white); border-radius: 16px; border: 1.5px solid var(--border);
+  padding: 16px 18px; display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.dest-card-icon {
+  width: 48px; height: 48px; background: var(--blue-light);
+  border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.dest-card-icon svg { width: 24px; height: 24px; stroke: var(--blue); stroke-width: 2; fill: none; }
+.dest-card-name { font-size: 17px; font-weight: 700; }
+.dest-card-sub  { font-size: 13px; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+.dest-card-sub svg { width: 13px; height: 13px; stroke: var(--text-muted); stroke-width: 2; fill: none; }
+.fastest-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--blue); color: white; font-size: 12px; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px; margin-top: 8px;
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <nav class="topbar">
+    <a href="index.html" class="topbar-brand">
+      <div class="topbar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </div>
+      <div>
+        <div class="topbar-name">ClassPath</div>
+        <div class="topbar-sub">Find your path to success</div>
+      </div>
+    </a>
+    <button class="topbar-menu" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-linecap="round"/></svg>
+    </button>
+  </nav>
+  <div class="topbar-progress"><div class="topbar-progress-fill" style="width:80%"></div></div>
+
+  <div class="screen">
+    <div class="map-page-header">
+      <a href="javascript:history.back()" class="back-btn" style="margin-bottom:12px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        Back
+      </a>
+      <h1 id="roomLabel">W-2-134</h1>
+      <p id="buildingLabel">Wheatley, 2nd Floor</p>
+    </div>
+
+    <div class="content">
+      <div class="map-container" style="margin-bottom:16px;">
+        <div class="map-floor-tabs" id="floorTabs"></div>
+        <div class="map-svg-wrap">
+          <svg id="floorSVG" viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;"></svg>
+        </div>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>Destination</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div>You Are Here</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#2563eb;opacity:0.4;"></div>Route</div>
+        </div>
+      </div>
+
+      <div class="dest-card" style="margin-bottom:16px;">
+        <div class="dest-card-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4" stroke-linecap="round"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div class="dest-card-name" id="destCardName">—</div>
+          <div class="dest-card-sub">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="destCardSub">—</span>
+          </div>
+          <div class="fastest-badge" id="modeBadge">FASTEST &nbsp; 3 mins</div>
+        </div>
+      </div>
+
+      <a id="startNavBtn" href="#" class="btn btn-blue">Start Navigation</a>
+      <div class="gap"></div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 21V12h6v9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Home</a>
+    <a href="search.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-linecap="round"/></svg>Search</a>
+    <a href="map.html" class="nav-item active"><svg viewBox="0 0 24 24" fill="none"><path d="M9 4L3 7v13l6-3 6 3 6-3V4l-6 3-6-3z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Map</a>
+    <a href="routes.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Routes</a>
+  </div>
+</div>
+<script>
+const p = new URLSearchParams(location.search);
+const room = p.get('room') || 'W-2-134';
+const building = p.get('building') || 'Wheatley';
+const floorP = parseInt(p.get('floor') || '2');
+const mode = p.get('mode') || 'stairs';
+const ord = ['st','nd','rd'][floorP-1] || 'th';
+document.getElementById('roomLabel').textContent = room;
+document.getElementById('buildingLabel').textContent = `${building}, ${floorP}${ord} Floor`;
+document.getElementById('destCardName').textContent = building;
+document.getElementById('destCardSub').textContent = `Room ${room.split('-').pop()} · ${floorP}${ord} Floor`;
+document.getElementById('modeBadge').textContent = mode === 'elevator' ? 'ACCESSIBLE  7 mins' : 'FASTEST  3 mins';
+const totalFloors = 4;
+const tabs = document.getElementById('floorTabs');
+for (let f = 1; f <= totalFloors; f++) {
+  const d = document.createElement('div');
+  d.className = 'floor-tab' + (f === floorP ? ' active' : '');
+  d.textContent = `Floor ${f}`;
+  d.onclick = () => { document.querySelectorAll('.floor-tab').forEach(t => t.classList.remove('active')); d.classList.add('active'); renderMap(f); };
+  tabs.appendChild(d);
+}
+const LAYOUTS = {
+  1:[['114',8,20,36,28],['121',52,20,36,28],['140',140,20,36,28],['180',184,20,36,28],['122',52,56,36,28],['141',140,56,36,28],['123',52,92,36,28],['142',140,92,36,28],['124',52,128,36,28],['144',140,128,36,28]],
+  2:[['132',8,20,48,28],['134',64,20,48,28],['150',164,20,48,28],['114',8,60,36,28],['121',52,60,36,28],['140',140,60,36,28],['180',184,60,36,28],['122',52,96,36,28],['141',140,96,36,28],['123',52,132,36,28],['142',140,132,36,28],['125',52,168,36,28],['144',140,168,36,28]],
+  3:[['300',8,20,48,28],['310',64,20,48,28],['320',8,56,36,28],['330',52,56,36,28],['340',140,56,36,28],['350',52,92,36,28],['360',140,92,36,28],['370',52,128,36,28],['380',140,128,36,28]],
+  4:[['400',8,20,48,28],['410',64,20,48,28],['420',8,56,36,28],['430',52,56,36,28],['440',140,56,36,28],['450',184,56,36,28]],
+};
+function renderMap(floor) {
+  const svg = document.getElementById('floorSVG');
+  const rooms = LAYOUTS[floor] || LAYOUTS[2];
+  const targetNum = room.split('-').pop();
+  const targetRoom = rooms.find(r => r[0] === targetNum) || rooms[1] || rooms[0];
+  const startRoom = rooms[rooms.length - 1];
+  const tx=targetRoom[1],ty=targetRoom[2],tw=targetRoom[3],th=targetRoom[4];
+  const sx=startRoom[1],sy=startRoom[2],sw=startRoom[3],sh=startRoom[4];
+  const startX=sx+sw/2,startY=sy+sh/2,endX=tx+tw/2,endY=ty+th/2;
+  const routeD = mode==='elevator' ? `M${startX},${startY} L${endX},${startY} L${endX},${endY}` : `M${startX},${startY} L${startX},${endY} L${endX},${endY}`;
+  svg.innerHTML = `
+    <rect x="0" y="0" width="280" height="200" fill="#f1f5f9" rx="4"/>
+    <rect x="0" y="50" width="280" height="10" fill="#e2e8f0"/>
+    <rect x="96" y="0" width="10" height="200" fill="#e2e8f0"/>
+    ${rooms.map(([id,x,y,w,h])=>{const isT=id===targetNum;return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${isT?'#bfdbfe':'#fff'}" stroke="${isT?'#2563eb':'#cbd5e1'}" stroke-width="${isT?2:1}" rx="3"/><text x="${x+w/2}" y="${y+h/2+4}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="${isT?'7':'6'}" font-weight="${isT?'700':'500'}" fill="${isT?'#1d4ed8':'#94a3b8'}">${id}</text></g>`;}).join('')}
+    <path d="${routeD}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="6,3" stroke-linecap="round"/>
+    <circle cx="${startX}" cy="${startY}" r="5" fill="#22c55e" stroke="white" stroke-width="1.5"/>
+    <circle cx="${endX}" cy="${endY}" r="6" fill="#2563eb" stroke="white" stroke-width="2"/>
+    <text x="${startX}" y="${startY-9}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="5.5" font-weight="700" fill="#15803d">You</text>`;
+}
+renderMap(floorP);
+const navParams = new URLSearchParams({ room, building, floor: floorP, mode });
+document.getElementById('startNavBtn').href = `navigate.html?${navParams}`;
+</script>
+</body>
+</html>

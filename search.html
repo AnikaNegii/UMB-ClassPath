@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClassPath — Search</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.search-hero {
+  background: var(--white);
+  padding: 28px 24px 24px;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.search-hero h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+.search-hero p  { font-size: 15px; color: var(--text-muted); margin-bottom: 20px; }
+
+.location-field {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.location-field:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--blue-light);
+}
+
+.location-field label { font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 2px; }
+.location-field input {
+  border: none; outline: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 500;
+  color: var(--text); background: transparent; width: 100%;
+}
+.location-field input::placeholder { color: var(--text-muted); }
+
+.loc-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.loc-dot-start { background: var(--blue); }
+.loc-dot-end   { background: transparent; border: 2px solid var(--blue); }
+
+.swap-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  margin: 4px auto;
+  transition: background 0.15s;
+}
+.swap-btn:hover { background: var(--blue-light); border-color: var(--blue); }
+.swap-btn svg { width: 16px; height: 16px; stroke: var(--text-muted); stroke-width: 2; }
+
+.results-info {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 10px;
+  font-weight: 500;
+}
+.results-info span { color: var(--blue); font-weight: 700; }
+
+/* Building row */
+.building-row .b-name  { font-weight: 700; font-size: 15px; }
+.building-row .b-floors { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+.building-row .b-count {
+  font-size: 12px; font-weight: 700;
+  color: var(--blue); background: var(--blue-light);
+  padding: 4px 10px; border-radius: 20px;
+}
+
+/* Dropdown suggestions */
+.suggestions-wrap { position: relative; }
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: var(--white);
+  border: 1.5px solid var(--blue);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 200;
+  overflow: hidden;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.suggestion-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.suggestion-row:last-child { border-bottom: none; }
+.suggestion-row:hover { background: var(--blue-light); }
+.suggestion-row .s-code { font-size: 14px; font-weight: 700; }
+.suggestion-row .s-sub  { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+.field-selected {
+  border-color: var(--blue) !important;
+  background: var(--blue-light) !important;
+}
+.field-selected input { color: var(--blue); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <nav class="topbar">
+    <a href="index.html" class="topbar-brand">
+      <div class="topbar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </div>
+      <div>
+        <div class="topbar-name">ClassPath</div>
+        <div class="topbar-sub">Find your path to success</div>
+      </div>
+    </a>
+    <button class="topbar-menu" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-linecap="round"/></svg>
+    </button>
+  </nav>
+  <div class="topbar-progress"><div class="topbar-progress-fill" style="width:33%"></div></div>
+
+  <div class="screen">
+    <div class="search-hero">
+      <h1>Where are you going?</h1>
+      <p>Enter your start and destination locations</p>
+
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">Start Location</div>
+      <div class="suggestions-wrap">
+        <div class="location-field" id="startField">
+          <div class="loc-dot loc-dot-start"></div>
+          <input type="text" placeholder="e.g., Main Entrance" id="startInput" autocomplete="off" oninput="handleInput('start', this.value)" onfocus="handleInput('start', this.value)" />
+        </div>
+        <div class="suggestions" id="startSuggestions" style="display:none;"></div>
+      </div>
+
+      <div class="swap-btn" onclick="swapFields()">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M19 12l-7 7-7-7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">Destination</div>
+      <div class="suggestions-wrap">
+        <div class="location-field" id="endField">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+          <input
+            type="text"
+            placeholder="e.g., Humanities Hall Room 402"
+            id="searchInput"
+            autocomplete="off"
+            oninput="handleInput('end', this.value)"
+            onfocus="handleInput('end', this.value)"
+          />
+        </div>
+        <div class="suggestions" id="endSuggestions" style="display:none;"></div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <a id="continueBtn" href="#" class="btn btn-blue" style="opacity:0.4;pointer-events:none;">Continue</a>
+      </div>
+    </div>
+
+    <div class="content" id="mainContent">
+      <div class="section-label">Recent</div>
+      <div class="list-card" id="recentCard">
+        <a href="select-choices.html?q=W-2-134" class="list-row selected">
+          <div><div class="room-code">W-2-134</div><div class="room-sub">Wheatley, Floor 2</div></div>
+          <span class="tag tag-lab">Lab</span>
+        </a>
+        <a href="select-choices.html?q=M-2-140" class="list-row">
+          <div><div class="room-code">M-2-140</div><div class="room-sub">McCormack, Floor 2</div></div>
+          <span class="tag tag-room">Room</span>
+        </a>
+        <a href="select-choices.html?q=L-2-156" class="list-row">
+          <div><div class="room-code">L-2-156</div><div class="room-sub">Wheatley, Floor 2</div></div>
+          <span class="tag tag-office">Office</span>
+        </a>
+      </div>
+
+      <div class="section-label">Buildings</div>
+      <div class="list-card">
+        <a href="select-choices.html?q=wheatley" class="list-row building-row">
+          <div><div class="b-name">Wheatley</div><div class="b-floors">8 floors</div></div>
+          <span class="b-count">4 rooms</span>
+        </a>
+        <a href="select-choices.html?q=mccormack" class="list-row building-row">
+          <div><div class="b-name">McCormack</div><div class="b-floors">7 floors</div></div>
+          <span class="b-count">6 rooms</span>
+        </a>
+        <a href="select-choices.html?q=quinn" class="list-row building-row">
+          <div><div class="b-name">Quinn</div><div class="b-floors">4 floors</div></div>
+          <span class="b-count">5 rooms</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 21V12h6v9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </a>
+    <a href="search.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-linecap="round"/></svg>
+      Search
+    </a>
+    <a href="map.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M9 4L3 7v13l6-3 6 3 6-3V4l-6 3-6-3z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Map
+    </a>
+    <a href="routes.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Routes
+    </a>
+  </div>
+</div>
+
+<script>
+const ALL_ROOMS = [
+  { code: 'W-2-134', sub: 'Wheatley, Floor 2',  type: 'lab',     tag: 'Lab',     building:'Wheatley',  floor:'2', capacity:30  },
+  { code: 'W-2-122', sub: 'Wheatley, Floor 2',  type: 'lab',     tag: 'Lab',     building:'Wheatley',  floor:'2', capacity:24  },
+  { code: 'W-3-201', sub: 'Wheatley, Floor 3',  type: 'office',  tag: 'Office',  building:'Wheatley',  floor:'3', capacity:4   },
+  { code: 'M-2-140', sub: 'McCormack, Floor 2', type: 'room',    tag: 'Room',    building:'McCormack', floor:'2', capacity:40  },
+  { code: 'M-1-040', sub: 'McCormack, Floor 1', type: 'lecture', tag: 'Lecture', building:'McCormack', floor:'1', capacity:120 },
+  { code: 'M-3-620', sub: 'McCormack, Floor 3', type: 'room',    tag: 'Room',    building:'McCormack', floor:'3', capacity:35  },
+  { code: 'L-2-156', sub: 'Wheatley, Floor 2',  type: 'office',  tag: 'Office',  building:'Wheatley',  floor:'2', capacity:6   },
+  { code: 'Q-2-210', sub: 'Quinn, Floor 2',      type: 'lab',    tag: 'Lab',     building:'Quinn',     floor:'2', capacity:20  },
+  { code: 'Q-1-132', sub: 'Quinn, Floor 1',      type: 'room',   tag: 'Room',    building:'Quinn',     floor:'1', capacity:30  },
+];
+
+const LOCATIONS = [
+  { code: 'Main Entrance',    sub: 'Ground Floor',          type: 'office', tag: 'Entrance', building:'Wheatley',  floor:'1', capacity:0 },
+  { code: 'Library',          sub: 'Campus Center, Floor 1',type: 'office', tag: 'Library',  building:'McCormack', floor:'1', capacity:0 },
+  { code: 'Cafeteria',        sub: 'Campus Center, Floor 2',type: 'office', tag: 'Dining',   building:'Quinn',     floor:'2', capacity:0 },
+  ...ALL_ROOMS
+];
+
+function tagClass(type) {
+  return { lab:'tag-lab', room:'tag-room', office:'tag-office', lecture:'tag-lecture' }[type] || 'tag-room';
+}
+
+let selectedStart = null;
+let selectedEnd   = null;
+
+function handleInput(which, val) {
+  const q = val.trim().toLowerCase();
+  const dropId = which === 'start' ? 'startSuggestions' : 'endSuggestions';
+  const drop = document.getElementById(dropId);
+
+  // Clear selection if user edits the field
+  if (which === 'start') selectedStart = null;
+  else selectedEnd = null;
+  updateContinueBtn();
+
+  if (!q) { drop.style.display = 'none'; showDefaultContent(); return; }
+
+  const matches = LOCATIONS.filter(r =>
+    r.code.toLowerCase().includes(q) ||
+    r.sub.toLowerCase().includes(q) ||
+    r.tag.toLowerCase().includes(q)
+  );
+
+  if (matches.length === 0) {
+    drop.innerHTML = '<div style="padding:14px 16px;font-size:14px;color:var(--text-muted);">No results found</div>';
+  } else {
+    drop.innerHTML = matches.map(r => `
+      <div class="suggestion-row" onmousedown="selectRoom('${which}', '${r.code}')">
+        <div>
+          <div class="s-code">${r.code}</div>
+          <div class="s-sub">${r.sub}</div>
+        </div>
+        <span class="tag ${tagClass(r.type)}" style="font-size:10px;padding:2px 8px;">${r.tag}</span>
+      </div>`).join('');
+  }
+
+  drop.style.display = 'block';
+  document.getElementById('mainContent').style.display = 'none';
+}
+
+function selectRoom(which, code) {
+  const room = LOCATIONS.find(r => r.code === code);
+  if (!room) return;
+
+  if (which === 'start') {
+    selectedStart = room;
+    document.getElementById('startInput').value = room.code;
+    document.getElementById('startField').classList.add('field-selected');
+    document.getElementById('startSuggestions').style.display = 'none';
+  } else {
+    selectedEnd = room;
+    document.getElementById('searchInput').value = room.code;
+    document.getElementById('endField').classList.add('field-selected');
+    document.getElementById('endSuggestions').style.display = 'none';
+  }
+  updateContinueBtn();
+}
+
+function updateContinueBtn() {
+  const btn = document.getElementById('continueBtn');
+  if (!btn) return;
+  if (selectedEnd) {
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+    const params = new URLSearchParams({
+      room: selectedEnd.code,
+      building: selectedEnd.building,
+      floor: selectedEnd.floor,
+      type: selectedEnd.type,
+      capacity: selectedEnd.capacity
+    });
+    btn.href = `route-options.html?${params}`;
+  } else {
+    btn.style.opacity = '0.4';
+    btn.style.pointerEvents = 'none';
+    btn.href = '#';
+  }
+}
+
+function showDefaultContent() {
+  const startEmpty = !document.getElementById('startInput').value.trim();
+  const endEmpty   = !document.getElementById('searchInput').value.trim();
+  if (startEmpty && endEmpty) {
+    document.getElementById('mainContent').style.display = '';
+  }
+}
+
+function swapFields() {
+  const startInput = document.getElementById('startInput');
+  const endInput   = document.getElementById('searchInput');
+  const tmpVal = startInput.value;
+  const tmpSel = selectedStart;
+  startInput.value = endInput.value;
+  selectedStart = selectedEnd;
+  endInput.value = tmpVal;
+  selectedEnd = tmpSel;
+  if (selectedStart) document.getElementById('startField').classList.add('field-selected');
+  else document.getElementById('startField').classList.remove('field-selected');
+  if (selectedEnd) document.getElementById('endField').classList.add('field-selected');
+  else document.getElementById('endField').classList.remove('field-selected');
+  updateContinueBtn();
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('.suggestions-wrap')) {
+    document.getElementById('startSuggestions').style.display = 'none';
+    document.getElementById('endSuggestions').style.display = 'none';
+    showDefaultContent();
+  }
+});
+
+// Pre-fill destination from URL param
+const urlQ = new URLSearchParams(location.search).get('q');
+if (urlQ) {
+  const input = document.getElementById('searchInput');
+  input.value = urlQ;
+  handleInput('end', urlQ);
+}
+
+updateContinueBtn();
+</script>
+</body>
+</html>

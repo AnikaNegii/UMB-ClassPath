@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClassPath — Select</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.sel-page-header {
+  background: var(--white);
+  padding: 20px 24px 20px;
+  border-bottom: 1.5px solid var(--border);
+}
+.sel-page-header h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 14px; }
+.match-info { font-size: 13px; color: var(--text-muted); margin-top: 10px; font-weight: 500; }
+.match-info span { color: var(--blue); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <nav class="topbar">
+    <a href="index.html" class="topbar-brand">
+      <div class="topbar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </div>
+      <div>
+        <div class="topbar-name">ClassPath</div>
+        <div class="topbar-sub">Find your path to success</div>
+      </div>
+    </a>
+    <button class="topbar-menu" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-linecap="round"/></svg>
+    </button>
+  </nav>
+
+  <div class="screen">
+    <div class="sel-page-header">
+      <a href="search.html" class="back-btn" style="margin-bottom:14px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        Search
+      </a>
+      <h1>Select Room</h1>
+      <div class="search-wrap">
+        <span class="search-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21" stroke-linecap="round"/></svg>
+        </span>
+        <input class="search-input" id="queryDisplay" type="text" readonly />
+      </div>
+      <div class="match-info" id="matchInfo"></div>
+    </div>
+
+    <div class="content">
+      <div class="list-card" id="resultsList"></div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 21V12h6v9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Home</a>
+    <a href="search.html" class="nav-item active"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-linecap="round"/></svg>Search</a>
+    <a href="map.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none"><path d="M9 4L3 7v13l6-3 6 3 6-3V4l-6 3-6-3z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Map</a>
+    <a href="routes.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Routes</a>
+  </div>
+</div>
+<script>
+const ALL_ROOMS = [
+  { code:'W-2-134', building:'Wheatley', floor:'2', sub:'Wheatley, Floor 2', type:'lab',     tag:'Lab',     capacity:30  },
+  { code:'W-2-122', building:'Wheatley', floor:'2', sub:'Wheatley, Floor 2', type:'lab',     tag:'Lab',     capacity:24  },
+  { code:'W-3-201', building:'Wheatley', floor:'3', sub:'Wheatley, Floor 3', type:'office',  tag:'Office',  capacity:4   },
+  { code:'M-2-140', building:'McCormack',floor:'2', sub:'McCormack, Floor 2',type:'room',    tag:'Room',    capacity:40  },
+  { code:'M-1-040', building:'McCormack',floor:'1', sub:'McCormack, Floor 1',type:'lecture', tag:'Lecture', capacity:120 },
+  { code:'M-3-620', building:'McCormack',floor:'3', sub:'McCormack, Floor 3',type:'room',    tag:'Room',    capacity:35  },
+  { code:'L-2-156', building:'Wheatley', floor:'2', sub:'Wheatley, Floor 2', type:'office',  tag:'Office',  capacity:6   },
+  { code:'Q-2-210', building:'Quinn',    floor:'2', sub:'Quinn, Floor 2',    type:'lab',     tag:'Lab',     capacity:20  },
+  { code:'Q-1-132', building:'Quinn',    floor:'1', sub:'Quinn, Floor 1',    type:'room',    tag:'Room',    capacity:30  },
+];
+function tagClass(t) { return {lab:'tag-lab',room:'tag-room',office:'tag-office',lecture:'tag-lecture'}[t]||'tag-room'; }
+const q = (new URLSearchParams(location.search).get('q') || '').toLowerCase().trim();
+const rawQ = new URLSearchParams(location.search).get('q') || '';
+document.getElementById('queryDisplay').value = rawQ;
+const matches = ALL_ROOMS.filter(r =>
+  r.code.toLowerCase().includes(q) || r.building.toLowerCase().includes(q) || r.tag.toLowerCase().includes(q)
+);
+document.getElementById('matchInfo').innerHTML =
+  `Results for "<span>${rawQ}</span>" — ${matches.length} match${matches.length!==1?'es':''} found`;
+const list = document.getElementById('resultsList');
+if (matches.length === 0) {
+  list.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text-muted);font-size:15px;">No rooms found.</div>';
+} else {
+  list.innerHTML = matches.map(r => {
+    const params = new URLSearchParams({ room:r.code, type:r.type, building:r.building, floor:r.floor, capacity:r.capacity });
+    return `<a href="room-details.html?${params}" class="list-row">
+      <div><div class="room-code">${r.code}</div><div class="room-sub">${r.sub}</div></div>
+      <span class="tag ${tagClass(r.type)}">${r.tag}</span>
+    </a>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
